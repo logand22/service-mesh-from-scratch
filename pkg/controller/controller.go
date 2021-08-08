@@ -14,6 +14,7 @@ const DefaultResyncTimeout = time.Minute * 10
 
 type Controller struct {
 	si informerv1.ServiceInformer
+	ei informerv1.EndpointsInformer
 
 	sf informers.SharedInformerFactory
 }
@@ -22,13 +23,13 @@ type Controller struct {
 // Must call <foo>.Informer() to register it in map of informers.
 // This makes call to start work.
 func NewController(kubeClient *kubernetes.Clientset) *Controller {
-	controller := &Controller{}
-	controller.sf = informers.NewSharedInformerFactory(kubeClient, DefaultResyncTimeout)
+	control := &Controller{}
+	control.sf = informers.NewSharedInformerFactory(kubeClient, DefaultResyncTimeout)
 
-	controller.si = controller.sf.Core().V1().Services()
-	controller.si.Informer()
+	control.si = control.sf.Core().V1().Services()
+	control.si.Informer()
 
-	return controller
+	return control
 }
 
 // Start the registered shared informers
@@ -54,4 +55,24 @@ func (c *Controller) GetServices(namespace, name string, selector labels.Selecto
 	}
 
 	return services, err
+}
+
+// GetEndpoints returns endpoints from the controller. If namespace is empty returns all endpoints
+// If name is empty, returns all endpoints in a namespace
+// If both are provided gets a specific endpoint from the controller.
+func (c *Controller) GetEndpoints(namespace, name string, selector labels.Selector) ([]*v1.Endpoints, error) {
+	var endpoints []*v1.Endpoints
+	var err error
+
+	if namespace == "" {
+		endpoints, err = c.ei.Lister().List(selector)
+	} else if name == "" {
+		endpoints, err = c.ei.Lister().Endpoints(namespace).List(selector)
+	} else {
+		var endpoint *v1.Endpoints
+		endpoint, err = c.ei.Lister().Endpoints(namespace).Get(name)
+		endpoints = []*v1.Endpoints{endpoint}
+	}
+
+	return endpoints, err
 }

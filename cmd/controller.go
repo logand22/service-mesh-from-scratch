@@ -16,8 +16,8 @@ var controllerCmd = &cobra.Command{
 			return err
 		}
 
-		controller := controller.NewController(client)
-		controller.Start(cmd.Context().Done())
+		control := controller.NewController(client)
+		control.Start(cmd.Context().Done())
 
 		return nil
 	},
