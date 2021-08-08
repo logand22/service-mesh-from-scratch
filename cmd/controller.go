@@ -1,13 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/logand22/service-mesh-from-scratch/pkg/controller"
 	"github.com/logand22/service-mesh-from-scratch/pkg/k8s"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/labels"
 )
 
 var controllerCmd = &cobra.Command{
@@ -22,8 +18,6 @@ var controllerCmd = &cobra.Command{
 
 		controller := controller.NewController(client)
 		controller.Start(cmd.Context().Done())
-		time.Sleep(time.Second * 15)
-		fmt.Println(controller.GetServices("", "", labels.Everything()))
 
 		return nil
 	},
